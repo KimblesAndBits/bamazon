@@ -26,6 +26,44 @@ function lowInventory() {
         });
 };
 
+function addInventory() {
+    inquirer.prompt([
+        {
+            message: "What is the item_id of the item for which you wish to add inventory?",
+            name: "itemID"
+        },
+        {
+            message: "How many of this item would you like to add?",
+            name: "quantity"
+        }
+    ]).then(answer => {
+        connection.query("select stock_quantity from products where ?",
+            [
+                {
+                    item_id: answer.itemID
+                }
+            ],
+            function (err, res) {
+                if (err) throw err;
+                var newQuantity = res[0].stock_quantity + parseInt(answer.quantity);
+                connection.query("update products set ? where ?",
+                [
+                    {
+                        stock_quantity: newQuantity
+                    },
+                    {
+                        item_id: answer.itemID
+                    }
+                ],
+                function (err, res) {
+                    if (err) throw err;
+                    console.log(res.affectedRows + " item's quantity updated.");
+                    managerView();
+                })
+            });
+    });
+};
+
 function managerView() {
     inquirer.prompt([
         {
@@ -43,8 +81,7 @@ function managerView() {
                 lowInventory();
                 break;
             case "Add to Inventory":
-                console.log("Add to inventory");
-                managerView();
+                addInventory();
                 break;
             case "Add New Product":
                 console.log("Add new product.");
