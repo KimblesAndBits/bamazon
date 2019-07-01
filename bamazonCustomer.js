@@ -40,23 +40,23 @@ function userInput(data) {
                 var totalPrice = item.price * answer.quantity;
                 var newQuantity = item.stock_quantity - answer.quantity;
                 console.log(`You have purchased ${answer.quantity} ${item.product_name} for $${totalPrice}!`);
-                updateDB(newQuantity, answer.idNumber);
+                updateDB(newQuantity, totalPrice, answer.idNumber);
             }
         }
     })
 };
 
-function updateDB(newQuantity, itemId) {
+function updateDB(newQuantity, totalPrice, itemId) {
     connection.query("update products set ? where ?",
         [
             {
-                stock_quantity: newQuantity
+                stock_quantity: newQuantity,
+                product_sales: totalPrice
             },
             {
                 item_id: itemId
             }], function (err, res) {
                 if (err) throw err;
-                console.log(res.affectedRows + " item's quantity updated.");
                 displayProducts();
             });
 };
