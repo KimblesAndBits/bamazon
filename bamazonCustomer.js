@@ -20,43 +20,45 @@ function displayProducts() {
 function userInput(data) {
     inquirer.prompt([
         {
-            message: "What is the item_id of the item you wish to purchase? (Type -1 to quit)",
+            message: "What is the item_id of the item you wish to purchase? (Type 0 to quit)",
             name: "idNumber"
         },
         {
-            message: "How many of this item would you like to purchase?",
+            message: "How many of this item would you like to purchase? (Type 0 to quit)",
             name: "quantity"
         }
     ]).then(answer => {
-        var item = data[answer.idNumber - 1];
-        if (item.stock_quantity < answer.quantity) {
-            console.log("Insufficient quantity!");
-            displayProducts();
-        } else if (answer.quantity < 0) {
+        if (answer.idNumber <= 0) {
             console.log("Thanks for using bamazon!");
             connection.end();
         } else {
-            var totalPrice = item.price * answer.quantity;
-            var newQuantity = item.stock_quantity - answer.quantity;
-            console.log(`You have purchased ${answer.quantity} ${item.product_name} for $${totalPrice}!`);
-            updateDB(newQuantity, answer.idNumber);
+            var item = data[answer.idNumber - 1];
+            if (item.stock_quantity < answer.quantity) {
+                console.log("Insufficient quantity!");
+                displayProducts();
+            } else {
+                var totalPrice = item.price * answer.quantity;
+                var newQuantity = item.stock_quantity - answer.quantity;
+                console.log(`You have purchased ${answer.quantity} ${item.product_name} for $${totalPrice}!`);
+                updateDB(newQuantity, answer.idNumber);
+            }
         }
     })
 };
 
 function updateDB(newQuantity, itemId) {
     connection.query("update products set ? where ?",
-    [
-    {
-        stock_quantity: newQuantity
-    },
-    {
-        item_id: itemId
-    }],function(err, res) {
-        if (err) throw err;
-        console.log(res.affectedRows + " item's quantity updated.");
-        displayProducts();
-    });
+        [
+            {
+                stock_quantity: newQuantity
+            },
+            {
+                item_id: itemId
+            }], function (err, res) {
+                if (err) throw err;
+                console.log(res.affectedRows + " item's quantity updated.");
+                displayProducts();
+            });
 };
 
 connection.connect(err => {
