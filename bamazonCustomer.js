@@ -20,7 +20,7 @@ function displayProducts() {
 function userInput(data) {
     inquirer.prompt([
         {
-            message: "What is the item_id of the item you wish to purchase?",
+            message: "What is the item_id of the item you wish to purchase? (Type -1 to quit)",
             name: "idNumber"
         },
         {
@@ -29,8 +29,11 @@ function userInput(data) {
         }
     ]).then(answer => {
         var item = data[answer.idNumber - 1];
-        if (item.stock_quantity < answer.quantity || answer.quantity < 0) {
+        if (item.stock_quantity < answer.quantity) {
             console.log("Insufficient quantity!");
+            displayProducts();
+        } else if (answer.quantity < 0) {
+            console.log("Thanks for using bamazon!");
             connection.end();
         } else {
             var totalPrice = item.price * answer.quantity;
@@ -52,7 +55,7 @@ function updateDB(newQuantity, itemId) {
     }],function(err, res) {
         if (err) throw err;
         console.log(res.affectedRows + " item's quantity updated.");
-        connection.end();
+        displayProducts();
     });
 };
 
