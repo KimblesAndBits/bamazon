@@ -8,32 +8,57 @@ var connection = mysql.createConnection({
     database: "bamazon"
 });
 
-class Department {
-    constructor(id, name, over, sales, profit) {
-        this.department_id = id;
-        this.department_name = name;
-        this.overhead_costs = over;
-        this.product_sales = sales;
-        this.total_profits = profit;
-    }
-} 
 
 function productSales() {
+    class Department {
+        constructor(id, name, over, sales, profit) {
+            this.department_id = id;
+            this.department_name = name;
+            this.overhead_costs = over;
+            this.product_sales = sales;
+            this.total_profits = profit;
+        }
+    };
     connection.query("select departments.department_id, departments.department_name, departments.overhead_costs, products.product_sales, products.product_sales - departments.overhead_costs as total_profits from departments left join products on products.department_name = departments.department_name",
-    function (err, res) {
-        if (err) throw err;
-        var depts = [];
-        res.forEach(element => {
-            if (element.department_id > depts.length) {
-                var dept = new Department(element.department_id, element.department_name, element.overhead_costs, element.product_sales, element.total_profits);
-                depts.push(dept);
-            } else {
-                depts[element.department_id - 1].product_sales += element.product_sales;
-                depts[element.department_id - 1].total_profits = depts[element.department_id - 1].product_sales - depts[element.department_id - 1].overhead_costs;
-            };
+        function (err, res) {
+            if (err) throw err;
+            var depts = [];
+            res.forEach(element => {
+                if (element.department_id > depts.length) {
+                    var dept = new Department(element.department_id, element.department_name, element.overhead_costs, element.product_sales, element.total_profits);
+                    depts.push(dept);
+                } else {
+                    depts[element.department_id - 1].product_sales += element.product_sales;
+                    depts[element.department_id - 1].total_profits = depts[element.department_id - 1].product_sales - depts[element.department_id - 1].overhead_costs;
+                };
+            });
+            console.table(depts);
+            supervisorView();
         });
-        console.table(depts);
-        supervisorView();
+};
+
+function addDept() {
+    inquirer.prompt([
+        {
+            message: "What is the department's name?",
+            name: "deptName"
+        },
+        {
+            message: "What is the overhead for this department?",
+            name: "deptOver"
+        }
+    ]).then(answer => {
+        connection.query("insert into departments set ?",
+            [
+                {
+                    department_name: answer.deptName,
+                    overhead_costs: answer.deptOver
+                }
+            ], function (err, res) {
+                if (err) throw err;
+                console.log(res.affectedRows + " department added to bamazon.");
+                supervisorView();
+            });
     });
 };
 
@@ -52,8 +77,7 @@ function supervisorView() {
                     productSales();
                     break;
                 case "Create New Department":
-                    console.log("Create");
-                    supervisorView();
+                    addDept();
                     break;
                 case "Exit":
                     console.log("Thank you for using bamazon Supervisor View!");
