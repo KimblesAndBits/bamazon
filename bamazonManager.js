@@ -47,19 +47,54 @@ function addInventory() {
                 if (err) throw err;
                 var newQuantity = res[0].stock_quantity + parseInt(answer.quantity);
                 connection.query("update products set ? where ?",
-                [
-                    {
-                        stock_quantity: newQuantity
-                    },
-                    {
-                        item_id: answer.itemID
-                    }
-                ],
-                function (err, res) {
-                    if (err) throw err;
-                    console.log(res.affectedRows + " item's quantity updated.");
-                    managerView();
-                })
+                    [
+                        {
+                            stock_quantity: newQuantity
+                        },
+                        {
+                            item_id: answer.itemID
+                        }
+                    ],
+                    function (err, res) {
+                        if (err) throw err;
+                        console.log(res.affectedRows + " item's quantity updated.");
+                        managerView();
+                    })
+            });
+    });
+};
+
+function addItem() {
+    inquirer.prompt([
+        {
+            message: "What is the item's name?",
+            name: "itemName"
+        },
+        {
+            message: "What department is the item in?",
+            name: "itemDept"
+        },
+        {
+            message: "What is the price of the item?",
+            name: "itemPrice"
+        },
+        {
+            message: "How many of this item are available?",
+            name: "itemQuantity"
+        }
+    ]).then(answer => {
+        connection.query("insert into products set ?",
+            [
+                {
+                    product_name: answer.itemName,
+                    department_name: answer.itemDept,
+                    price: answer.itemPrice,
+                    stock_quantity: answer.itemQuantity
+                }
+            ], function (err, res) {
+                if (err) throw err;
+                console.log(res.affectedRows + " item added to bamazon.");
+                managerView();
             });
     });
 };
@@ -84,8 +119,7 @@ function managerView() {
                 addInventory();
                 break;
             case "Add New Product":
-                console.log("Add new product.");
-                managerView();
+                addItem();
                 break;
             case "Exit":
                 console.log("Thanks for using bamazon Manager View!");
