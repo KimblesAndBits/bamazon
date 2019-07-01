@@ -14,7 +14,6 @@ function displayProducts() {
             if (err) throw err;
             console.table(res);
             userInput(res);
-            connection.end();
         });
 };
 
@@ -34,20 +33,27 @@ function userInput(data) {
             console.log("Insufficient quantity!");
         } else {
             var totalPrice = item.price * answer.quantity;
+            var newQuantity = item.stock_quantity - answer.quantity;
             console.log(`You have purchased ${answer.quantity} ${item.product_name} for $${totalPrice}!`);
+            updateDB(newQuantity, answer.idNumber);
         }
     })
 };
 
-function updateDB() {
+function updateDB(newQuantity, itemId) {
     connection.query("update products set ? where ?",
+    [
     {
-        
+        stock_quantity: newQuantity
     },
     {
-
-    })
-}
+        item_id: itemId
+    }],function(err, res) {
+        if (err) throw err;
+        console.log(res.affectedRows + " item's quantity updated.");
+        connection.end();
+    });
+};
 
 connection.connect(err => {
     if (err) throw err;
