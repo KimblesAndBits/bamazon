@@ -31,6 +31,7 @@ function userInput(data) {
         var item = data[answer.idNumber - 1];
         if (item.stock_quantity < answer.quantity || answer.quantity < 0) {
             console.log("Insufficient quantity!");
+            connection.end();
         } else {
             var totalPrice = item.price * answer.quantity;
             var newQuantity = item.stock_quantity - answer.quantity;
